@@ -11,7 +11,9 @@ QUERY_PERIOD = os.getenv('QUERY_PERIOD', "1800")
 
 app = Flask(__name__)
 CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
-g = Gauge('aws_today_daily_costs', 'Today daily costs from AWS')
+g_cost = Gauge('aws_today_daily_costs', 'Today daily costs from AWS')
+g_usage = Gauge('aws_today_daily_usage', 'Today daily usage from AWS')
+g_usage_norm = Gauge('aws_today_daily_usage_norm', 'Today daily usage normalized from AWS')
 client = boto3.client('ce')
 
 scheduler = BackgroundScheduler()
@@ -30,7 +32,31 @@ def aws_query():
     )
     cost = r["ResultsByTime"][0]["Total"]["BlendedCost"]["Amount"]
     print("Updated AWS Daily costs: %s" %(cost))
-    g.set(float(cost))
+    g_cost.set(float(cost))
+
+    r = client.get_cost_and_usage(
+        TimePeriod={
+            'Start': yesterday.strftime("%Y-%m-%d"),
+            'End':  now.strftime("%Y-%m-%d")
+        },
+        Granularity="DAILY",
+        Metrics=["UsageQuantity"]
+    )
+    usage = r["ResultsByTime"][0]["Total"]["UsageQuantity"]["Amount"]
+    print("Updated AWS Daily Usage: %s" %(usage))
+    g_usage.set(float(usage))
+
+    r = client.get_cost_and_usage(
+        TimePeriod={
+            'Start': yesterday.strftime("%Y-%m-%d"),
+            'End':  now.strftime("%Y-%m-%d")
+        },
+        Granularity="DAILY",
+        Metrics=["NormalizedUsageAmount"]
+    )
+    usage_norm = r["ResultsByTime"][0]["Total"]["NormalizedUsageAmount"]["Amount"]
+    print("Updated AWS Daily Usage Norm: %s" %(usage_norm))
+    g_usage_norm.set(float(usage_norm))
     return 0
 
 
