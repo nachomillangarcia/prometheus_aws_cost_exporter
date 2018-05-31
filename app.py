@@ -26,3 +26,7 @@ def aws_query():
 def metrics():
     g.set(aws_query())
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+
+@app.route('/health')
+def health():
+    return "OK"
