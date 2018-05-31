@@ -17,6 +17,7 @@ client = boto3.client('ce')
 scheduler = BackgroundScheduler()
 
 def aws_query():
+    print("Calculating costs...")
     now = datetime.now()
     yesterday = datetime.today() - timedelta(days=1)
     r = client.get_cost_and_usage(
@@ -29,7 +30,8 @@ def aws_query():
     )
     cost = r["ResultsByTime"][0]["Total"]["BlendedCost"]["Amount"]
     print("Updated AWS Daily costs: %s" %(cost))
-    return float(r["ResultsByTime"][0]["Total"]["BlendedCost"]["Amount"])
+    g.set(float(cost))
+    return 0
 
 
 @app.route('/metrics/')
