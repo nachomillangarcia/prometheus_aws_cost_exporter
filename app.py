@@ -43,7 +43,7 @@ def health():
 scheduler.start()
 scheduler.add_job(
     func=aws_query,
-    trigger=IntervalTrigger(seconds=int(QUERY_PERIOD),start_date=(datetime.now() + timedelta(seconds=1))),
+    trigger=IntervalTrigger(seconds=int(QUERY_PERIOD),start_date=(datetime.now() + timedelta(seconds=5))),
     id='aws_query',
     name='Run AWS Query',
     replace_existing=True
