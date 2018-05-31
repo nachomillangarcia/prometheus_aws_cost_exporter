@@ -1,0 +1,14 @@
+boto3==1.7.30
+botocore==1.10.30
+click==6.7
+docutils==0.14
+Flask==1.0.2
+itsdangerous==0.24
+Jinja2==2.10
+jmespath==0.9.3
+MarkupSafe==1.0
+prometheus-client==0.2.0
+python-dateutil==2.7.3
+s3transfer==0.1.13
+six==1.11.0
+Werkzeug==0.14.1
