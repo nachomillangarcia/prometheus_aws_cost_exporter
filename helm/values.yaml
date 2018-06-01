@@ -1,0 +1,12 @@
+image: nachomillangarcia/prometheus_aws_cost_exporter:latest
+args:
+  - --host
+  - 0.0.0.0
+svcAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "5000"
+  prometheus.io/scheme: "http"
+  prometheus.io/path: "/metrics"
+
+env:
+  QUERY_PERIOD: "1800"

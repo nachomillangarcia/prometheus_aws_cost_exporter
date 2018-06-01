@@ -1,0 +1,18 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}
+  {{- if .Values.svcAnnotations }}
+  annotations:
+  {{- range $key, $value := .Values.svcAnnotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- end }}
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+  type: ClusterIP

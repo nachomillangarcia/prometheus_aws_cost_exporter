@@ -1,0 +1,67 @@
+apiVersion: apps/v1beta2 # for versions before 1.8.0 use apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+      {{- if .Values.podAnnotations }}
+      annotations:
+      {{- range $key, $value := .Values.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+      {{- end }}
+      {{- end }}
+    spec:
+      containers:
+      - name: {{ .Release.Name }}
+        image: {{ .Values.image }}
+        imagePullPolicy: Always
+        {{- if .Values.args }}
+        args:
+          {{- range .Values.args }}
+          - {{ . | quote }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.env }}
+        env:
+          {{- range $key, $value := .Values.env }}
+          - name: {{ $key | quote }}
+            value: {{ $value | quote }}
+          {{- end }}
+        {{- end }}
+        ports:
+        - name: http
+          containerPort: 5000
+          protocol: TCP
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "300m"
+        livenessProbe:
+          tcpSocket:
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 10

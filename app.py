@@ -11,11 +11,12 @@ QUERY_PERIOD = os.getenv('QUERY_PERIOD', "1800")
 
 app = Flask(__name__)
 CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
+client = boto3.client('ce')
+
 g_cost = Gauge('aws_today_daily_costs', 'Today daily costs from AWS')
 g_yesterday = Gauge('aws_yesterday_daily_costs', 'Yesterday daily costs from AWS')
 g_usage = Gauge('aws_today_daily_usage', 'Today daily usage from AWS')
 g_usage_norm = Gauge('aws_today_daily_usage_norm', 'Today daily usage normalized from AWS')
-client = boto3.client('ce')
 
 scheduler = BackgroundScheduler()
 
