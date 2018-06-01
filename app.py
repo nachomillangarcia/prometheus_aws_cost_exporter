@@ -12,6 +12,7 @@ QUERY_PERIOD = os.getenv('QUERY_PERIOD', "1800")
 app = Flask(__name__)
 CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 g_cost = Gauge('aws_today_daily_costs', 'Today daily costs from AWS')
+g_yesterday = Gauge('aws_yesterday_daily_costs', 'Yesterday daily costs from AWS')
 g_usage = Gauge('aws_today_daily_usage', 'Today daily usage from AWS')
 g_usage_norm = Gauge('aws_today_daily_usage_norm', 'Today daily usage normalized from AWS')
 client = boto3.client('ce')
@@ -22,6 +23,7 @@ def aws_query():
     print("Calculating costs...")
     now = datetime.now()
     yesterday = datetime.today() - timedelta(days=1)
+    two_days_ago = datetime.today() - timedelta(days=2)
     r = client.get_cost_and_usage(
         TimePeriod={
             'Start': yesterday.strftime("%Y-%m-%d"),
@@ -33,6 +35,19 @@ def aws_query():
     cost = r["ResultsByTime"][0]["Total"]["BlendedCost"]["Amount"]
     print("Updated AWS Daily costs: %s" %(cost))
     g_cost.set(float(cost))
+
+    r = client.get_cost_and_usage(
+        TimePeriod={
+            'Start': two_days_ago.strftime("%Y-%m-%d"),
+            'End':  yesterday.strftime("%Y-%m-%d")
+        },
+        Granularity="DAILY",
+        Metrics=["BlendedCost"]
+    )
+    cost_yesterday = r["ResultsByTime"][0]["Total"]["BlendedCost"]["Amount"]
+    print("Yesterday's AWS Daily costs: %s" %(cost_yesterday))
+    g_yesterday.set(float(cost_yesterday))
+
 
     r = client.get_cost_and_usage(
         TimePeriod={
