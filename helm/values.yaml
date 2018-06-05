@@ -7,6 +7,6 @@ svcAnnotations:
   prometheus.io/port: "5000"
   prometheus.io/scheme: "http"
   prometheus.io/path: "/metrics"
-
+podAnnotations:
 env:
   QUERY_PERIOD: "1800"
