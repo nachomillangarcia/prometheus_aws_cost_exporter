@@ -9,4 +9,3 @@ svcAnnotations:
   prometheus.io/path: "/metrics"
 podAnnotations:
 env:
-  QUERY_PERIOD: "1800"
