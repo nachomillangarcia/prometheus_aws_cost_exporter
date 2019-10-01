@@ -9,3 +9,10 @@ svcAnnotations:
   prometheus.io/path: "/metrics"
 podAnnotations:
 env:
+tagFilters:
+  # filterName:
+  #   tagName1: tagValue1
+  #   tagName2: tagValue2
+  test:
+    Tag1: value1
+    Tag2: value2

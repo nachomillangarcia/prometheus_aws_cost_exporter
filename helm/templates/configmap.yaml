@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-cost-exporter-filter
+data:
+{{- range $key, $value := .Values.tagFilters }}
+  {{ $key }}.yaml: |-
+    filter:
+      tags:
+        {{- range $k, $v := $value }}
+        {{ $k }}: {{ $v }}
+        {{- end }}
+{{- end -}}
