@@ -20,6 +20,8 @@ Configuration is made through environment variables:
 | METRIC_YESTERDAY_DAILY_COSTS | Enable aws_yesterday_daily_costs metric      |   Not set |
 | METRIC_TODAY_DAILY_USAGE | Enable aws_today_daily_usage metric      |   Not set |
 | METRIC_TODAY_DAILY_USAGE_NORM | Enable aws_today_daily_usage_norm metric      |   Not set |
+| AWS_FILTER | User AWS Cost Explorer Filter | Not set |
+| CONFIG_PATH| filter config filepath | /cost-exporter |
 
 ## Quickstart
 

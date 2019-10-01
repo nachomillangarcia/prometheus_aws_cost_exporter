@@ -65,3 +65,10 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 10
           timeoutSeconds: 10
+        volumeMounts:
+        - name: filter-volume
+          mountPath: /cost-exporter
+      volumes:
+      - name: filter-volume
+        configMap:
+          name: aws-cost-exporter-filter

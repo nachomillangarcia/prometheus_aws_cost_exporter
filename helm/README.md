@@ -19,3 +19,4 @@ The following table lists the configurable parameters of the heptio-ark chart an
 | `svcAnnotations` | Annotations for service | no | See values.yaml |
 | `podAnnotations` |  Annotations for pod | yes | cluster-admins |
 | `env` | Env variables for container | no | See values.yaml |
+| `tagFilters` | Tag filters for aws cost explorer | See values.yaml |
