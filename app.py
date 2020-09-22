@@ -14,13 +14,13 @@ CONTENT_TYPE_LATEST = str('text/plain; version=0.0.4; charset=utf-8')
 client = boto3.client('ce')
 
 if os.environ.get('METRIC_TODAY_DAILY_COSTS') is not None:
-    g_cost = Gauge('aws_today_daily_costs', 'Today daily costs from AWS')
+    g_cost = Gauge('aws_today_daily_costs', 'Today daily costs from AWS', ['usage_type'])
 if os.environ.get('METRIC_YESTERDAY_DAILY_COSTS') is not None:
-    g_yesterday = Gauge('aws_yesterday_daily_costs', 'Yesterday daily costs from AWS')
+    g_yesterday = Gauge('aws_yesterday_daily_costs', 'Yesterday daily costs from AWS', ['usage_type'])
 if os.environ.get('METRIC_TODAY_DAILY_USAGE') is not None:
-    g_usage = Gauge('aws_today_daily_usage', 'Today daily usage from AWS')
+    g_usage = Gauge('aws_today_daily_usage', 'Today daily usage from AWS', ['usage_type', 'unit'])
 if os.environ.get('METRIC_TODAY_DAILY_USAGE_NORM') is not None:
-    g_usage_norm = Gauge('aws_today_daily_usage_norm', 'Today daily usage normalized from AWS')
+    g_usage_norm = Gauge('aws_today_daily_usage_norm', 'Today daily usage normalized from AWS', ['usage_type'])
 
 scheduler = BackgroundScheduler()
 
@@ -37,11 +37,20 @@ def aws_query():
                 'End':  now.strftime("%Y-%m-%d")
             },
             Granularity="DAILY",
-            Metrics=["BlendedCost"]
+            Metrics=["BlendedCost"],
+            GroupBy=[
+                {
+                    'Type': 'DIMENSION',
+                    'Key': 'USAGE_TYPE'
+                }
+            ]
         )
-        cost = r["ResultsByTime"][0]["Total"]["BlendedCost"]["Amount"]
-        print("Updated AWS Daily costs: %s" %(cost))
-        g_cost.set(float(cost))
+        cost_groups = r["ResultsByTime"][0]["Groups"]
+        for cost_group in cost_groups:
+            label = cost_group["Keys"][0]
+            cost = cost_group["Metrics"]["BlendedCost"]["Amount"]
+            g_cost.labels(usage_type=label).set(float(cost))
+            print("Updated AWS Daily costs for %s to: %s" %(label, cost))
 
     if os.environ.get('METRIC_YESTERDAY_DAILY_COSTS') is not None:
         r = client.get_cost_and_usage(
@@ -50,11 +59,20 @@ def aws_query():
                 'End':  yesterday.strftime("%Y-%m-%d")
             },
             Granularity="DAILY",
-            Metrics=["BlendedCost"]
+            Metrics=["BlendedCost"],
+            GroupBy=[
+                {
+                    'Type': 'DIMENSION',
+                    'Key': 'USAGE_TYPE'
+                }
+            ]
         )
-        cost_yesterday = r["ResultsByTime"][0]["Total"]["BlendedCost"]["Amount"]
-        print("Yesterday's AWS Daily costs: %s" %(cost_yesterday))
-        g_yesterday.set(float(cost_yesterday))
+        cost_groups = r["ResultsByTime"][0]["Groups"]
+        for cost_group in cost_groups:
+            label = cost_group["Keys"][0]
+            cost = cost_group["Metrics"]["BlendedCost"]["Amount"]
+            g_yesterday.labels(usage_type=label).set(float(cost))
+            print("Yesterday's AWS Daily costs for %s to: %s" %(label, cost))
 
 
     if os.environ.get('METRIC_TODAY_DAILY_USAGE') is not None:
@@ -64,11 +82,22 @@ def aws_query():
                 'End':  now.strftime("%Y-%m-%d")
             },
             Granularity="DAILY",
-            Metrics=["UsageQuantity"]
+            Metrics=["UsageQuantity"],
+            GroupBy=[
+                {
+                    'Type': 'DIMENSION',
+                    'Key': 'USAGE_TYPE'
+                }
+            ]
         )
-        usage = r["ResultsByTime"][0]["Total"]["UsageQuantity"]["Amount"]
-        print("Updated AWS Daily Usage: %s" %(usage))
-        g_usage.set(float(usage))
+
+        usage_groups = r["ResultsByTime"][0]["Groups"]
+        for usage_group in usage_groups:
+            label = usage_group["Keys"][0]
+            usage = usage_group["Metrics"]["UsageQuantity"]["Amount"]
+            unit = usage_group["Metrics"]["UsageQuantity"]["Unit"]
+            g_usage.labels(usage_type=label, unit=unit).set(float(usage))
+            print("Updated AWS Daily Usage for %s to: %s %s" %(label, usage, unit))
 
     if os.environ.get('METRIC_TODAY_DAILY_USAGE_NORM') is not None:
 
@@ -78,11 +107,21 @@ def aws_query():
                 'End':  now.strftime("%Y-%m-%d")
             },
             Granularity="DAILY",
-            Metrics=["NormalizedUsageAmount"]
+            Metrics=["NormalizedUsageAmount"],
+            GroupBy=[
+                {
+                    'Type': 'DIMENSION',
+                    'Key': 'USAGE_TYPE'
+                }
+            ]
         )
-        usage_norm = r["ResultsByTime"][0]["Total"]["NormalizedUsageAmount"]["Amount"]
-        print("Updated AWS Daily Usage Norm: %s" %(usage_norm))
-        g_usage_norm.set(float(usage_norm))
+
+        usage_groups = r["ResultsByTime"][0]["Groups"]
+        for usage_group in usage_groups:
+            label = usage_group["Keys"][0]
+            usage = usage_group["Metrics"]["NormalizedUsageAmount"]["Amount"]
+            g_usage_norm.labels(usage_type=label).set(float(usage))
+            print("Updated AWS Daily Usage for %s to: %s" %(label, usage))
 
     print("Finished calculating costs")
 
